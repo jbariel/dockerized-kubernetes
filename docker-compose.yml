@@ -31,15 +31,19 @@ x-lr: &do-leave-running
   restart: always
 
 services:
+  # Base image that the rest of this depends on
   kubectl:
     build:
       context: ./kubectl
-      <<: *build-args
+      args:
+        K8_VERSION: ${K8_VERSION}
+        CFSSL_VERSION: ${CFSSL_VERSION}
     image: "kubectl:${K8_VERSION}"
     <<: *do-leave-running
     networks:
       k8:
         ipv4_address: 172.18.6.100
+  # Build out etcd from the kubectl
   etcd:
     build:
       context: ./etcd
@@ -48,7 +52,9 @@ services:
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.101
+        ipv4_address: 172.18.6.110
+  # Typically this (controller-manager) and the scheduler/api-server are deployed together, but...
+  # DOCKER!
   kube-controller-manager:
     build:
       context: ./kube-controller-manager
@@ -57,7 +63,9 @@ services:
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.102
+        ipv4_address: 172.18.6.120
+  # Typically this (scheduler) and the controller-manager/api-server are deployed together, but...
+  # DOCKER!
   kube-scheduler:
     build:
       context: ./kube-scheduler
@@ -66,7 +74,9 @@ services:
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.103
+        ipv4_address: 172.18.6.121
+  # Typically this (api-server) and the controller-manager/scheduler are deployed together, but...
+  # DOCKER!
   kube-api-server:
     build:
       context: ./kube-api-server
@@ -75,7 +85,8 @@ services:
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.104
+        ipv4_address: 172.18.6.122
+  # We want three nodes... 1/3
   kubelet_0:
     build:
       context: ./kubelet
@@ -84,19 +95,21 @@ services:
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.105
+        ipv4_address: 172.18.6.130
+  # We want three nodes... 2/3
   kubelet_1:
     image: k8-kubelet:${K8_VERSION}
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.106
+        ipv4_address: 172.18.6.131
+  # We want three nodes... 3/3
   kubelet_2:
     image: k8-kubelet:${K8_VERSION}
     <<: *depends-on-kubectl
     networks:
       k8:
-        ipv4_address: 172.18.6.107
+        ipv4_address: 172.18.6.132
 
 networks:
   k8:

@@ -18,13 +18,16 @@
 FROM alpine:latest
 
 ARG K8_VERSION
+ARG CFSSL_VERSION
 
 RUN apk -U add bash curl && \
     mkdir -p /k8 && \
-    curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kubectl --output kubectl && \
-    chmod +x kubectl && \
-    mv kubectl /usr/local/bin && \
-    kubectl version --client
+    curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kubectl --output /usr/local/bin/kubectl && \
+    for I in cfssl cfssljson; do curl -L https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/${I}_${CFSSL_VERSION}_linux_amd64 -o /usr/local/bin/$I; done && \
+    for I in kubectl cfssl cfssljson; do chmod +x /usr/local/bin/$I; done && \
+    kubectl version --client && \
+    cfssl version && \
+    cfssljson -version 
 
 WORKDIR /k8
 
