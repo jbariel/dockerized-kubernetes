@@ -21,3 +21,18 @@ FROM kubectl:${KUBECTL_TAG}
 
 ARG K8_VERSION
 ARG ETCD_VERSION
+
+WORKDIR /ectd
+
+ENTRYPOINT [ "./ectd-start.sh" ]
+CMD [ "etcd" ]
+
+RUN apk -U --no-cache add wget && \
+    wget -q --show-progress --https-only --timestamping "https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz" && \
+    tar -xvf etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
+    cp etcd-${ETCD_VERSION}-linux-amd64/etcd* /usr/local/bin/. && \
+    mkdir -p /etc/etcd /var/lib/etcd && \
+    cp /k8/certs-and-config/ca.pem /k8/certs-and-config/kubernetes-key.pem /k8/certs-and-config/kubernetes.pem /etc/etcd/
+
+COPY ./*.sh .
+RUN chmod +x *.sh

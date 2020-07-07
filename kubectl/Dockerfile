@@ -21,7 +21,7 @@ ARG K8_VERSION
 ARG CFSSL_VERSION
 
 # Get everything installed
-RUN apk -U add bash curl && \
+RUN apk -U --no-cache add bash curl && \
     mkdir -p /k8/certs-and-config && \
     curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kubectl --output /usr/local/bin/kubectl && \
     for I in cfssl cfssljson; do curl -L https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/${I}_${CFSSL_VERSION}_linux_amd64 -o /usr/local/bin/$I; done && \

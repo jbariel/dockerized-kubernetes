@@ -1,5 +1,22 @@
 #!/bin/bash
 
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 set -e
 
 # Create the root cert
@@ -8,8 +25,12 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 #   ca-key.pem
 #   ca.pem
 
+# These are core params we use when generating a cert, can be appended as needed...
 BASE_CERT_PARAMS="-ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes"
 
+# see `docker-compose.yml`
+# |||jbariel TODO => should probably turn most of the IPs into ENV variables and generate
+#    passthrough values to prevent fat-fingering....
 K8_API_SERVER_IP=172.18.6.130
 
 # Generate the CSR JSON file and the Cert.
@@ -63,6 +84,7 @@ genCsrAndCertAndConfig 'kubernetes' 'kubernetes' 'Kubernetes' "${BASE_CERT_PARAM
 genCsrAndCertAndConfig 'service-account' 'service-accounts' 'Kubernetes Service Accounts' "${BASE_CERT_PARAMS}"
 
 # Encryption key for data at rest...
+# @see https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/06-data-encryption-keys.md
 ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
 cat > encryption-config.yaml <<EOF
 kind: EncryptionConfig
