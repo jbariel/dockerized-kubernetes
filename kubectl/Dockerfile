@@ -22,7 +22,7 @@ ARG CFSSL_VERSION
 
 # Get everything installed
 RUN apk -U add bash curl && \
-    mkdir -p /k8 && \
+    mkdir -p /k8/certs-and-config && \
     curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kubectl --output /usr/local/bin/kubectl && \
     for I in cfssl cfssljson; do curl -L https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/${I}_${CFSSL_VERSION}_linux_amd64 -o /usr/local/bin/$I; done && \
     for I in kubectl cfssl cfssljson; do chmod +x /usr/local/bin/$I; done && \
@@ -31,12 +31,11 @@ RUN apk -U add bash curl && \
     cfssljson -version 
 
 # Setup the certs
-WORKDIR /usr/local/certs/templates
-COPY certs/ .
+WORKDIR /k8/certs-and-config
+COPY certs-and-config/ .
 
 RUN chmod +x *.sh && \
-    ./gen-certs.sh && \
-    ./gen-k8-config.sh
+    ./gen-certs-and-config.sh
 
 WORKDIR /k8
 
