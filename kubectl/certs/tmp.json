@@ -1,0 +1,16 @@
+{
+    "CN": "FOO",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "Phoenix",
+            "O": "Dockerized Kubernetes Admin",
+            "OU": "Dockerized Kubernetes Admin Root CA",
+            "ST": "Arizona"
+        }
+    ]
+}

@@ -20,6 +20,7 @@ FROM alpine:latest
 ARG K8_VERSION
 ARG CFSSL_VERSION
 
+# Get everything installed
 RUN apk -U add bash curl && \
     mkdir -p /k8 && \
     curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kubectl --output /usr/local/bin/kubectl && \
@@ -28,6 +29,14 @@ RUN apk -U add bash curl && \
     kubectl version --client && \
     cfssl version && \
     cfssljson -version 
+
+# Setup the certs
+WORKDIR /usr/local/certs/templates
+COPY certs/ .
+
+RUN chmod +x *.sh && \
+    ./gen-certs.sh && \
+    ./gen-k8-config.sh
 
 WORKDIR /k8
 

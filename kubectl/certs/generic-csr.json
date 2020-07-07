@@ -1,0 +1,16 @@
+{
+    "CN": "CERTNAME_HERE",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "Phoenix",
+            "O": "CERTORG_HERE",
+            "OU": "Dockerized Kubernetes",
+            "ST": "Arizona"
+        }
+    ]
+}

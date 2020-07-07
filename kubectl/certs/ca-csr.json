@@ -1,0 +1,16 @@
+{
+    "CN": "Dockerized Kubernetes Root CA",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "Phoenix",
+            "O": "Dockerized Kubernetes",
+            "OU": "Dockerized Kubernetes Root CA",
+            "ST": "Arizona"
+        }
+    ]
+}
