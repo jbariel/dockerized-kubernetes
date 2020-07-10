@@ -19,9 +19,10 @@
 
 set -e
 
-if [ "$1" = 'apiserver' ]; then
+function _start_apiserver
+{
     /usr/local/bin/kube-apiserver \
-        --advertise-address=${KUBE_APISERVER_IP} \
+        --advertise-address=${KUBE_IP} \
         --allow-privileged=true \
         --apiserver-count=1 \
         --audit-log-maxage=30 \
@@ -49,6 +50,36 @@ if [ "$1" = 'apiserver' ]; then
         --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \
         --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \
         --v=2
+}
+
+function _start_controller_manager
+{
+    /usr/local/bin/kube-controller-manager \
+        --bind-address=0.0.0.0 \
+        --cluster-cidr=${K8_NET_IP_RANGE} \
+        --cluster-name=dockerized-kubernetes \
+        --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \
+        --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \
+        --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \
+        --leader-elect=true \
+        --root-ca-file=/var/lib/kubernetes/ca.pem \
+        --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \
+        --service-cluster-ip-range="${K8_NET_SVC_IP_RANGE}" \
+        --use-service-account-credentials=true \
+        --v=2
+}
+
+function _start_scheduler
+{
+    /usr/local/bin/kube-scheduler \
+        --config=/var/lib/kubernetes/kube-scheduler.yaml \
+        --v=2
+}
+
+if [ "$1" = 'all' ]; then
+    _start_controller_manager &
+    _start_scheduler &
+    _start_apiserver
 else
     exec "$@"
 fi

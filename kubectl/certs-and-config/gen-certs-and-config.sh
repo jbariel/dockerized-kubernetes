@@ -49,7 +49,7 @@ function genCsrAndCertAndConfig
     cfssl gencert ${4} ${1}-csr.json | cfssljson -bare ${1}
 
     ## All the fun of k8 configuration based on certs
-    kubectl config set-cluster dockerized-kubernetes --certificate-authority=ca.pem --embed-certs=true --server=https://${KUBE_APISERVER_IP}:6443 --kubeconfig=${1}.kubeconfig
+    kubectl config set-cluster dockerized-kubernetes --certificate-authority=ca.pem --embed-certs=true --server=https://${KUBE_IP}:6443 --kubeconfig=${1}.kubeconfig
     kubectl config set-credentials ${2} --client-certificate=${1}.pem --client-key=${1}-key.pem --embed-certs=true --kubeconfig=${1}.kubeconfig
     kubectl config set-context default --cluster=dockerized-kubernetes --user=${2} --kubeconfig=${1}.kubeconfig
     kubectl config use-context default --kubeconfig=${1}.kubeconfig
@@ -64,13 +64,13 @@ for I in {0..2}; do
 done
 
 # Create the kube controller manager client cert
-genCsrAndCertAndConfig 'kube-controller-manager' 'system:kube-controller-manager' 'system:kube-controller-manager' "${BASE_CERT_PARAMS} -hostname=${KUBE_CONTROLLER_MANAGER_IP},kube-controller-manager"
+genCsrAndCertAndConfig 'kube-controller-manager' 'system:kube-controller-manager' 'system:kube-controller-manager' "${BASE_CERT_PARAMS}"
 
 # Create the kube proxy client cert
 genCsrAndCertAndConfig 'kube-proxy' 'system:kube-proxy' 'system:node-proxier' "${BASE_CERT_PARAMS}"
 
 # Create the kube scheduler client cert
-genCsrAndCertAndConfig 'kube-scheduler' 'system:kube-scheduler' 'system:kube-scheduler' "${BASE_CERT_PARAMS} -hostname=${KUBE_SCHEDULER_IP},kube-scheduler"
+genCsrAndCertAndConfig 'kube-scheduler' 'system:kube-scheduler' 'system:kube-scheduler' "${BASE_CERT_PARAMS}"
 
 # kube scheduler config file
 cat <<EOF | tee kube-scheduler.yaml
@@ -83,7 +83,7 @@ leaderElection:
 EOF
 
 # Create the kube api server cert
-genCsrAndCertAndConfig 'kubernetes' 'kubernetes' 'Kubernetes' "${BASE_CERT_PARAMS} -hostname=${KUBE_APISERVER_IP},kube-apiserver,kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.svc.cluster.local"
+genCsrAndCertAndConfig 'kubernetes' 'kubernetes' 'Kubernetes' "${BASE_CERT_PARAMS} -hostname=${KUBE_IP},kube,kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.svc.cluster.local"
 
 # Create the kube api server cert
 genCsrAndCertAndConfig 'etcd' 'etcd' 'K8 etcd' "${BASE_CERT_PARAMS} -hostname=${K8_ETCD_IP},etcd"

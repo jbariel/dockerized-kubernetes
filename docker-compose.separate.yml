@@ -27,8 +27,18 @@ x-bakubelet: &build-args-kubelet
   RUNC_VERSION: ${RUNC_VERSION}
   CNI_VERSION: ${CNI_VERSION}
   CONTAINERD_VERSION: ${CONTAINERD_VERSION}
-x-da: &depends-on-kube
-  depends_on: ["kubectl", "etcd", "kube"]
+x-da: &depends-on-apiserver
+  depends_on: ["kubectl", "etcd", "kube-apiserver"]
+  restart: always
+x-dofk: &depends-on-for-kubelet
+  depends_on:
+    [
+      "kubectl",
+      "etcd",
+      "kube-apiserver",
+      "kube-controller-manager",
+      "kube-scheduler",
+    ]
   restart: always
 x-lr: &do-leave-running
   stdin_open: true
@@ -44,7 +54,10 @@ x-env: &ip-env
     - K8_NET_SVC_IP_RANGE_MASK=${K8_NET_SVC_IP_RANGE_MASK}
     - KUBECTL_IP=${KUBECTL_IP}
     - K8_ETCD_IP=${K8_ETCD_IP}
-    - KUBE_IP=${KUBE_IP}
+    - KUBE_APISERVER_IP=${KUBE_APISERVER_IP}
+    - KUBE_CONTROLLER_MANAGER_IP=${KUBE_CONTROLLER_MANAGER_IP}
+    - KUBE_SCHEDULER_IP=${KUBE_SCHEDULER_IP}
+    - KUBELET_BASE_IP=${KUBELET_BASE_IP}
     - KUBELET_0_IP=${KUBELET_0_IP}
     - KUBELET_1_IP=${KUBELET_1_IP}
     - KUBELET_2_IP=${KUBELET_2_IP}
@@ -57,10 +70,19 @@ services:
       args:
         K8_VERSION: ${K8_VERSION}
         CFSSL_VERSION: ${CFSSL_VERSION}
+        K8_NET_IP_RANGE_BASE: ${K8_NET_IP_RANGE_BASE}
+        K8_NET_IP_RANGE_MASK: ${K8_NET_IP_RANGE_MASK}
+        K8_NET_SVC_IP_RANGE_BASE: ${K8_NET_SVC_IP_RANGE_BASE}
+        K8_NET_SVC_IP_RANGE_MASK: ${K8_NET_SVC_IP_RANGE_MASK}
         KUBECTL_IP: ${KUBECTL_IP}
         K8_ETCD_IP: ${K8_ETCD_IP}
-        KUBE_IP: ${KUBE_IP}
+        KUBE_APISERVER_IP: ${KUBE_APISERVER_IP}
+        KUBE_CONTROLLER_MANAGER_IP: ${KUBE_CONTROLLER_MANAGER_IP}
+        KUBE_SCHEDULER_IP: ${KUBE_SCHEDULER_IP}
         KUBELET_BASE_IP: ${KUBELET_BASE_IP}
+        KUBELET_0_IP: ${KUBELET_0_IP}
+        KUBELET_1_IP: ${KUBELET_1_IP}
+        KUBELET_2_IP: ${KUBELET_2_IP}
     image: "kubectl:${K8_VERSION}"
     <<: *do-leave-running
     <<: *ip-env
@@ -84,27 +106,55 @@ services:
     networks:
       k8:
         ipv4_address: ${K8_ETCD_IP}
-  # k8 requires all services be tied together... dumb...
-  kube:
+  # Typically this (api-server) and the controller-manager/scheduler are deployed together, but...
+  # DOCKER!
+  kube-apiserver:
     build:
-      context: ./kube
+      context: ./kube-apiserver
       args:
         <<: *build-args-kubectl-k8
-    image: "k8-kube:${K8_VERSION}"
-    <<: *do-leave-running
+    image: "k8-apiserver:${K8_VERSION}"
     <<: *ip-env
     depends_on: ["kubectl", "etcd"]
     restart: always
     ports:
       - 8080:8080
       - 6443:6443
+    networks:
+      k8:
+        ipv4_address: ${KUBE_APISERVER_IP}
+  # Typically this (controller-manager) and the scheduler/api-server are deployed together, but...
+  # DOCKER!
+  kube-controller-manager:
+    build:
+      context: ./kube-controller-manager
+      args:
+        <<: *build-args-kubectl-k8
+    image: "k8-controller-manager:${K8_VERSION}"
+    <<: *ip-env
+    <<: *depends-on-apiserver
+    ports:
       - 10252:10252
       - 10257:10257
+    networks:
+      k8:
+        ipv4_address: ${KUBE_CONTROLLER_MANAGER_IP}
+  # Typically this (scheduler) and the controller-manager/api-server are deployed together, but...
+  # DOCKER!
+  kube-scheduler:
+    build:
+      context: ./kube-scheduler
+      args:
+        <<: *build-args-kubectl-k8
+    image: "k8-scheduler:${K8_VERSION}"
+    <<: *ip-env
+    <<: *depends-on-apiserver
+    ports:
       - 10251:10251
       - 10259:10259
     networks:
       k8:
-        ipv4_address: ${KUBE_IP}
+        ipv4_address: ${KUBE_SCHEDULER_IP}
   # We want three nodes... 1/3
   kubelet_0:
     build:
@@ -114,7 +164,7 @@ services:
         <<: *build-args-kubelet
     image: k8-kubelet:${K8_VERSION}
     <<: *ip-env
-    <<: *depends-on-kube
+    <<: *depends-on-for-kubelet
     ports:
       - 10250:10250
       - 10255:10255
@@ -125,7 +175,7 @@ services:
   kubelet_1:
     image: k8-kubelet:${K8_VERSION}
     <<: *ip-env
-    <<: *depends-on-kube
+    <<: *depends-on-for-kubelet
     networks:
       k8:
         ipv4_address: ${KUBELET_1_IP}
@@ -133,7 +183,7 @@ services:
   kubelet_2:
     image: k8-kubelet:${K8_VERSION}
     <<: *ip-env
-    <<: *depends-on-kube
+    <<: *depends-on-for-kubelet
     networks:
       k8:
         ipv4_address: ${KUBELET_2_IP}
