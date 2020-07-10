@@ -19,17 +19,13 @@
 
 set -e
 
-# see `docker-compose.yml`
-# |||jbariel TODO => should probably turn most of the IPs into ENV variables and generate
-#    passthrough values to prevent fat-fingering....
-ECTD_IP=172.18.6.90
-K8_APISERVER_IP=172.18.6.100
+echo " >>>>>>>>>>>>> cluster ip range: ${K8_NET_SVC_IP_RANGE}"
 
 if [ "$1" = 'apiserver' ]; then
     /usr/local/bin/kube-apiserver \
-        --advertise-address=${K8_APISERVER_IP} \
+        --advertise-address=${KUBE_APISERVER_IP} \
         --allow-privileged=true \
-        --apiserver-count=3 \
+        --apiserver-count=1 \
         --audit-log-maxage=30 \
         --audit-log-maxbackup=3 \
         --audit-log-maxsize=100 \
@@ -41,15 +37,16 @@ if [ "$1" = 'apiserver' ]; then
         --etcd-cafile=/var/lib/kubernetes/ca.pem \
         --etcd-certfile=/var/lib/kubernetes/etcd.pem \
         --etcd-keyfile=/var/lib/kubernetes/etcd-key.pem \
-        --etcd-servers=https://${ECTD_IP}:2379 \
+        --etcd-servers=https://${K8_ETCD_IP}:2379 \
         --event-ttl=1h \
         --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \
+        --external-hostname=kube-apiserver
         --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \
         --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \
         --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \
         --runtime-config=api/all=true \
         --service-account-key-file=/var/lib/kubernetes/service-account.pem \
-        --service-cluster-ip-range=172.18.15.0/24 \
+        --service-cluster-ip-range="${K8_NET_SVC_IP_RANGE}" \
         --service-node-port-range=30000-32767 \
         --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \
         --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \
