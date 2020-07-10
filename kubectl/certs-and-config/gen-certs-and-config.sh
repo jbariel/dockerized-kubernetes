@@ -31,7 +31,7 @@ BASE_CERT_PARAMS="-ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=
 # see `docker-compose.yml`
 # |||jbariel TODO => should probably turn most of the IPs into ENV variables and generate
 #    passthrough values to prevent fat-fingering....
-K8_API_SERVER_IP=172.18.6.130
+K8_API_SERVER_IP=172.18.6.100
 
 # Generate the CSR JSON file and the Cert.
 #  $1 => base name
@@ -69,7 +69,7 @@ for I in {0..2}; do
 done
 
 # Create the kube controller manager client cert
-genCsrAndCertAndConfig 'kube-controller-manager' 'system:kube-controller-manager' 'system:kube-controller-manager' "${BASE_CERT_PARAMS} -hostname=172.18.6.100,kube-controller-manager"
+genCsrAndCertAndConfig 'kube-controller-manager' 'system:kube-controller-manager' 'system:kube-controller-manager' "${BASE_CERT_PARAMS} -hostname=172.18.6.110,kube-controller-manager"
 
 # Create the kube proxy client cert
 genCsrAndCertAndConfig 'kube-proxy' 'system:kube-proxy' 'system:node-proxier' "${BASE_CERT_PARAMS}"
@@ -77,8 +77,21 @@ genCsrAndCertAndConfig 'kube-proxy' 'system:kube-proxy' 'system:node-proxier' "$
 # Create the kube scheduler client cert
 genCsrAndCertAndConfig 'kube-scheduler' 'system:kube-scheduler' 'system:kube-scheduler' "${BASE_CERT_PARAMS} -hostname=172.18.6.120,kube-scheduler"
 
+# kube scheduler config file
+cat <<EOF | tee kube-scheduler.yaml
+apiVersion: kubescheduler.config.k8s.io/v1beta1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
+leaderElection:
+  leaderElect: true
+EOF
+
 # Create the kube api server cert
-genCsrAndCertAndConfig 'kubernetes' 'kubernetes' 'Kubernetes' "${BASE_CERT_PARAMS} -hostname=${K8_API_SERVER_IP},kube-api-server"
+genCsrAndCertAndConfig 'kubernetes' 'kubernetes' 'Kubernetes' "${BASE_CERT_PARAMS} -hostname=${K8_API_SERVER_IP},kube-apiserver"
+
+# Create the kube api server cert
+genCsrAndCertAndConfig 'etcd' 'etcd' 'K8 etcd' "${BASE_CERT_PARAMS} -hostname=172.18.6.90,etcd"
 
 # Create the kube service accounts cert
 genCsrAndCertAndConfig 'service-account' 'service-accounts' 'Kubernetes Service Accounts' "${BASE_CERT_PARAMS}"

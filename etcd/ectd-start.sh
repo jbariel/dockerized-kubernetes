@@ -28,10 +28,10 @@ ETCD_HOSTNAME=$(hostname)
 if [ "$1" = 'etcd' ]; then
     /usr/local/bin/etcd \
         --name ${ETCD_HOSTNAME} \
-        --cert-file=/etc/etcd/kubernetes.pem \
-        --key-file=/etc/etcd/kubernetes-key.pem \
-        --peer-cert-file=/etc/etcd/kubernetes.pem \
-        --peer-key-file=/etc/etcd/kubernetes-key.pem \
+        --cert-file=/etc/etcd/etcd.pem \
+        --key-file=/etc/etcd/etcd-key.pem \
+        --peer-cert-file=/etc/etcd/etcd.pem \
+        --peer-key-file=/etc/etcd/etcd-key.pem \
         --trusted-ca-file=/etc/etcd/ca.pem \
         --peer-trusted-ca-file=/etc/etcd/ca.pem \
         --peer-client-cert-auth \

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,10 +17,22 @@
 # limitations under the License.
 #
 
-ARG KUBECTL_TAG
+set -e
 
-FROM kubectl:${KUBECTL_TAG}
-
-ARG K8_VERSION
-
-RUN curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kube-apiserver --output kube-apiserver
+if [ "$1" = 'controller-manager' ]; then
+    /usr/local/bin/kube-controller-manager \
+        --bind-address=0.0.0.0 \
+        --cluster-cidr=172.18.0.0/20 \
+        --cluster-name=dockerized-kubernetes \
+        --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \
+        --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \
+        --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \
+        --leader-elect=true \
+        --root-ca-file=/var/lib/kubernetes/ca.pem \
+        --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \
+        --service-cluster-ip-range=172.18.15.0/24 \
+        --use-service-account-credentials=true \
+        --v=2
+else
+    exec "$@"
+fi

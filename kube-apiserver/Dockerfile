@@ -21,15 +21,15 @@ FROM kubectl:${KUBECTL_TAG}
 
 ARG K8_VERSION
 
-ENTRYPOINT [ "./k8-scheduler-start.sh" ]
-CMD [ "scheduler" ]
+ENTRYPOINT [ "./k8-apiserver-start.sh" ]
+CMD [ "apiserver" ]
 
 # WORKDIR /k8 => already true
 
-RUN curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kube-scheduler --output /usr/local/bin/kube-scheduler && \
-    chmod +x /usr/local/bin/kube-scheduler && \
+RUN curl https://storage.googleapis.com/kubernetes-release/release/${K8_VERSION}/bin/linux/amd64/kube-apiserver --output /usr/local/bin/kube-apiserver && \
+    chmod +x /usr/local/bin/kube-apiserver && \
     mkdir -p /var/lib/kubernetes && \
-    cp /k8/certs-and-config/kube-scheduler.kubeconfig /k8/certs-and-config/*.yaml /k8/certs-and-config/*.pem /var/lib/kubernetes/
+    cp /k8/certs-and-config/*.yaml /k8/certs-and-config/*.pem /var/lib/kubernetes/
 
 COPY ./*.sh .
 RUN chmod +x *.sh
