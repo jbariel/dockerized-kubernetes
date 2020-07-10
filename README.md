@@ -1,6 +1,9 @@
 # Kubernetes (K8) running in Docker
 This project is to get [Kubernetes](https://kubernetes.io/) running locally in Docker.  Notes below.
 
+## CURRENTLY NOT FUNCTIONAL...
+This project is still in development, feel free to use at your own risk, as it is currently not working...
+
 # Security
 K8 is moving to systems that require secure connectivity, so the core security is built into the base `kubectl` image.
 
@@ -8,9 +11,10 @@ K8 is moving to systems that require secure connectivity, so the core security i
 By default, the `docker-compose` will run a single instance of each of the following:
 - `kubectl` => used to issue commands, also the base image
 - `etcd` => Builds out an [etcd]() instance for [k8](https://kubernetes.io/docs/concepts/overview/components/#etcd)
-- `kube-api-server` => Builds out the k8 [api-server](https://kubernetes.io/docs/concepts/overview/components/#kube-apiserver)
-- `kube-scheduler` => Builds out the k8 [scheduler](https://kubernetes.io/docs/concepts/overview/components/#kube-scheduler)
-- `kube-controller-manager` => Builds out the k8 [controller-manager](https://kubernetes.io/docs/concepts/overview/components/#kube-controller-manager)
+- `kube` => The K8 "brain" which includes:
+  - `kube-api-server` => Builds out the k8 [api-server](https://kubernetes.io/docs/concepts/overview/components/#kube-apiserver)
+  - `kube-scheduler` => Builds out the k8 [scheduler](https://kubernetes.io/docs/concepts/overview/components/#kube-scheduler)
+  - `kube-controller-manager` => Builds out the k8 [controller-manager](https://kubernetes.io/docs/concepts/overview/components/#kube-controller-manager)
 - `kubelet` => Builds out three (3) [kubelet nodes](https://kubernetes.io/docs/concepts/overview/components/#node-components)
 
 ## Configuration
