@@ -39,7 +39,7 @@ function _start_apiserver
         --etcd-servers=https://${K8_ETCD_IP}:2379 \
         --event-ttl=1h \
         --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \
-        --external-hostname=kube-apiserver
+        --external-hostname=kube-apiserver \
         --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \
         --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \
         --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \

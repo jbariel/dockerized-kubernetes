@@ -10,7 +10,7 @@ K8 is moving to systems that require secure connectivity, so the core security i
 # Running
 By default, the `docker-compose` will run a single instance of each of the following:
 - `kubectl` => used to issue commands, also the base image
-- `etcd` => Builds out an [etcd]() instance for [k8](https://kubernetes.io/docs/concepts/overview/components/#etcd)
+- `etcd` => Builds out an [etcd](https://etcd.io/) instance for [k8](https://kubernetes.io/docs/concepts/overview/components/#etcd)
 - `kube` => The K8 "brain" which includes:
   - `kube-api-server` => Builds out the k8 [api-server](https://kubernetes.io/docs/concepts/overview/components/#kube-apiserver)
   - `kube-scheduler` => Builds out the k8 [scheduler](https://kubernetes.io/docs/concepts/overview/components/#kube-scheduler)
